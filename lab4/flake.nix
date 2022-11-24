@@ -2,55 +2,51 @@
   inputs = {
     nixpkgs_.url = "github:deemp/flakes?dir=source-flake/nixpkgs";
     nixpkgs.follows = "nixpkgs_/nixpkgs";
-    my-codium.url = "github:deemp/flakes?dir=codium";
+    drv-tools.url = "github:deemp/flakes?dir=drv-tools";
     flake-utils_.url = "github:deemp/flakes?dir=source-flake/flake-utils";
     flake-utils.follows = "flake-utils_/flake-utils";
-    vscode-extensions_.url = "github:deemp/flakes?dir=source-flake/vscode-extensions";
-    vscode-extensions.follows = "vscode-extensions_/vscode-extensions";
     my-devshell.url = "github:deemp/flakes?dir=devshell";
   };
   outputs =
     { self
     , nixpkgs
-    , my-codium
+    , drv-tools
     , flake-utils
-    , vscode-extensions
     , my-devshell
     , ...
     }: flake-utils.lib.eachDefaultSystem
       (system:
       let
         pkgs = nixpkgs.legacyPackages.${system};
-        inherit (my-codium.functions.${system}) mkCodium writeSettingsJSON;
-        inherit (my-codium.configs.${system}) extensions settingsNix;
-        inherit (vscode-extensions.packages.${system}) vscode open-vsx;
-        codium = mkCodium {
-          extensions = {
-            inherit (extensions) nix misc markdown github;
-            c-cpp = {
-              inherit (vscode.ms-vscode) cpptools-themes cmake-tools cpptools;
-            };
-          };
-          runtimeDependencies = [ pkgs.hello ];
-        };
         devshell = my-devshell.devshell.${system};
         inherit (my-devshell.functions.${system}) mkCommands;
-        writeSettings = writeSettingsJSON {
-          inherit (settingsNix) todo-tree files editor gitlens
-            git nix-ide workbench markdown-all-in-one;
+        inherit (drv-tools.functions.${system}) mkShellApps;
+        inherit (drv-tools.configs.${system}) man;
+        scripts = mkShellApps {
+          bench = rec {
+            text = ''sysbench --threads=2  --time=60 cpu --cpu-max-prime=64000'';
+            description = "task 1";
+            longDescription = ''
+              ${man.DESCRIPTION}
+              ${description}
+            '';
+          };
         };
+        scripts_ = builtins.attrValues scripts;
       in
       {
         devShells.default = devshell.mkShell
           {
-            packages = [ codium writeSettings ];
+            packages = [ pkgs.sysbench ] ++ scripts_;
             bash = {
-              extra = ''
-                printf "Hello!\n"
-              '';
+              extra = ''printf "Hello!\n"'';
             };
-            commands = mkCommands "ide" [ codium writeSettings ];
+            commands = mkCommands "scripts" scripts_;
           };
+
+        packages = {
+          inherit scripts;
+        };
       });
 
   nixConfig = {
