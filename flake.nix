@@ -8,6 +8,7 @@
     vscode-extensions_.url = "github:deemp/flakes?dir=source-flake/vscode-extensions";
     vscode-extensions.follows = "vscode-extensions_/vscode-extensions";
     my-devshell.url = "github:deemp/flakes?dir=devshell";
+    python-tools.url = "github:deemp/flakes?dir=language-tools/python";
   };
   outputs =
     { self
@@ -16,6 +17,7 @@
     , flake-utils
     , vscode-extensions
     , my-devshell
+    , python-tools
     , ...
     }: flake-utils.lib.eachDefaultSystem
       (system:
@@ -24,9 +26,10 @@
         inherit (my-codium.functions.${system}) mkCodium writeSettingsJSON;
         inherit (my-codium.configs.${system}) extensions settingsNix;
         inherit (vscode-extensions.packages.${system}) vscode open-vsx;
+        tools = [ pkgs.hadolint pkgs.poetry pkgs.rabbitmq-server ];
         codium = mkCodium {
           extensions = {
-            inherit (extensions) nix misc markdown github docker;
+            inherit (extensions) nix misc markdown github docker python toml yaml;
             c-cpp = {
               inherit (vscode.ms-vscode) cpptools-themes cmake-tools cpptools;
             };
@@ -34,25 +37,35 @@
               inherit (vscode.ipedrazas) kubernetes-snippets;
             };
           };
-          runtimeDependencies = [ pkgs.hello ];
+          runtimeDependencies = tools;
         };
+        inherit (python-tools.snippets.${system}) activateVenv;
+        createVenvs = python-tools.functions.${system}.createVenvs [ "." "lab5" ];
         devshell = my-devshell.devshell.${system};
         inherit (my-devshell.functions.${system}) mkCommands;
         writeSettings = writeSettingsJSON {
           inherit (settingsNix) todo-tree files editor gitlens
-            git nix-ide workbench markdown-all-in-one;
+            git nix-ide workbench markdown-all-in-one python;
+          add = {
+            "python.defaultInterpreterPath" = "\${workspaceFolder}/.venv/bin/python3";
+          };
         };
       in
       {
         devShells.default = devshell.mkShell
           {
-            packages = [ codium writeSettings ];
+            packages = [ codium writeSettings createVenvs ] ++ tools;
             bash = {
-              extra = ''
-                printf "Hello!\n"
-              '';
+              extra = '''';
             };
-            commands = mkCommands "ide" [ codium writeSettings ];
+            commands = (mkCommands "ide" [ codium writeSettings ]) ++
+              [
+                {
+                  name = "poetry";
+                  help = pkgs.poetry.meta.description;
+                  category = "tools";
+                }
+              ];
           };
       });
 

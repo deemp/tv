@@ -1,0 +1,55 @@
+version: "3.2"
+services:
+  # rabbitmq3:
+  #   container_name: "rabbitmq"
+  #   image: rabbitmq:3-management-alpine
+  #   environment:
+  #     - RABBITMQ_DEFAULT_USER=myuser
+  #     - RABBITMQ_DEFAULT_PASS=mypassword
+  #   ports:
+  #     # AMQP protocol port
+  #     - '5672:5672'
+  #     # HTTP management UI
+  #     - '15672:15672'
+
+  rabbitmq:
+    image: rabbitmq:3-management-alpine
+    ports:
+      - 5672:5672
+      - 15672:15672
+    volumes:
+      # - ~/rabbitmq/:/var/lib/rabbitmq
+      - ~/.docker-conf/rabbitmq/data/:/var/lib/rabbitmq/mnesia/
+      # - ~/.docker-conf/rabbitmq/log/:/var/log/rabbitmq/
+    environment:
+      RABBITMQ_DEFAULT_USER: "admin"
+      RABBITMQ_DEFAULT_PASS: "pass"
+      RABBITMQ_DEFAULT_VHOST: "vhost"
+    networks:
+      - rabbitmq_net
+
+  reader:
+    container_name: reader
+    depends_on: [ "rabbitmq" ]
+    build:
+      context: ./reader
+      dockerfile: Dockerfile
+    volumes:
+      - ./reader/app:/app
+    networks:
+      - rabbitmq_net
+
+  writer:
+    container_name: writer
+    depends_on: [ "rabbitmq", "reader" ]
+    build:
+      context: ./writer
+      dockerfile: Dockerfile
+    volumes:
+      - ./writer/app:/app
+    networks:
+      - rabbitmq_net
+
+networks:
+  rabbitmq_net:
+    driver: bridge

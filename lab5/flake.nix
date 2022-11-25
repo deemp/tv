@@ -6,6 +6,7 @@
     flake-utils_.url = "github:deemp/flakes?dir=source-flake/flake-utils";
     flake-utils.follows = "flake-utils_/flake-utils";
     my-devshell.url = "github:deemp/flakes?dir=devshell";
+    python-tools.url = "github:deemp/flakes?dir=language-tools/python";
   };
   outputs =
     { self
@@ -13,6 +14,7 @@
     , drv-tools
     , flake-utils
     , my-devshell
+    , python-tools
     , ...
     }: flake-utils.lib.eachDefaultSystem
       (system:
@@ -22,14 +24,23 @@
         inherit (my-devshell.functions.${system}) mkCommands;
         inherit (drv-tools.functions.${system}) mkShellApps;
         inherit (drv-tools.configs.${system}) man;
+        inherit (python-tools.snippets.${system}) activateVenv;
         scripts = mkShellApps {
-          bench = rec {
-            text = ''sysbench --threads=2  --time=60 cpu --cpu-max-prime=64000'';
-            description = "task 1";
-            longDescription = ''
-              ${man.DESCRIPTION}
-              ${description}
+          prepareVolumes = rec {
+            text = ''
+              sudo mkdir -p ~/.docker-conf/rabbitmq/data/
+              sudo mkdir -p ~/.docker-conf/rabbitmq/log/
             '';
+            description = "Prepare volumes for RabbitMQ";
+          };
+          # https://dev.to/acro5piano/specifying-user-and-group-in-docker-i2e
+          dockerCompose = rec {
+            text = ''
+              cd src
+              CUID="$(id -u)" CGID="$(id -g)" docker compose up
+            '';
+            description = "docker compose with effective user and group";
+            runtimeInputs = [ pkgs.docker ];
           };
         };
         scripts_ = builtins.attrValues scripts;
@@ -37,9 +48,14 @@
       {
         devShells.default = devshell.mkShell
           {
-            packages = [ pkgs.kubernetes pkgs.docker ] ++ scripts_;
+            packages = [
+              pkgs.kubernetes
+              pkgs.docker
+              pkgs.poetry
+              pkgs.hadolint
+            ] ++ scripts_;
             bash = {
-              extra = '''';
+              extra = activateVenv;
             };
             commands = (mkCommands "scripts" scripts_) ++ [
               {
