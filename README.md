@@ -1,4 +1,8 @@
-# VSCodium generic
+# Total Virtualization
+
+## Labs
+
+- [lab 4](./lab4/README.md)
 
 ## Prerequisites
 
@@ -7,8 +11,6 @@ See [Prerequisites](https://github.com/deemp/flakes#prerequisites)
 ## Description
 
 This flake is based on the [codium](https://github.com/deemp/flakes/blob/main/codium/README.md) flake.
-
-This flake demonstrates how to enable specific extensions and make the `hello` executable available on `PATH` in `VSCodium`.
 
 ## Devshell
 
