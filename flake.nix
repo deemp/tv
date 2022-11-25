@@ -26,9 +26,12 @@
         inherit (vscode-extensions.packages.${system}) vscode open-vsx;
         codium = mkCodium {
           extensions = {
-            inherit (extensions) nix misc markdown github;
+            inherit (extensions) nix misc markdown github docker;
             c-cpp = {
               inherit (vscode.ms-vscode) cpptools-themes cmake-tools cpptools;
+            };
+            k8s = {
+              inherit (vscode.ipedrazas) kubernetes-snippets;
             };
           };
           runtimeDependencies = [ pkgs.hello ];
