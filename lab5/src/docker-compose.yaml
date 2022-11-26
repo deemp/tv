@@ -20,7 +20,7 @@ services:
     container_name: consumer_container
     depends_on:
       - rabbitmq
-      # - postgres
+      - postgres
     build:
       context: ./consumer
       dockerfile: Dockerfile
@@ -44,26 +44,34 @@ services:
       - ./producer/app:/app
     networks: *networks
     extra_hosts: *extra_hosts
-  # # https://towardsdatascience.com/how-to-run-postgresql-and-pgadmin-using-docker-3a6a8ae918b5
-  # postgres:
-  #   container_name: postgres_container
-  #   image: postgres:15
-  #   restart: always
-  #   volumes:
-  #     - /var/run/postgresql:/var/run/postgresql
-  #   ports:
-  #     - ${POSTGRES_PORT}:${POSTGRES_PORT_CONTAINER}
-  #   networks: *networks
+  
+  # https://stackoverflow.com/a/67971684
+  # https://towardsdatascience.com/how-to-run-postgresql-and-pgadmin-using-docker-3a6a8ae918b5
+  postgres:
+    container_name: postgres_container
+    image: postgres:latest
+    restart: always
+    env_file:
+      - .env
+    volumes:
+      - /var/run/postgresql:/var/run/postgresql
+      - ./postgres/init.sql:/docker-entrypoint-initdb.d/init.sql
+      - pg_data:/var/lib/postgresql/data
+    ports:
+      - ${DB_PORT}:${DB_PORT_CONTAINER}
+    networks: *networks
 
-  # pgadmin:
-  #   depends_on:
-  #     - postgres
-  #   container_name: pgadmin4_container
-  #   image: dpage/pgadmin4
-  #   restart: always
-  #   ports:
-  #     - ${PGADMIN_PORT}:${PGADMIN_PORT_CONTAINER}
-  #   networks: *networks
+  pgadmin:
+    depends_on:
+      - postgres
+    container_name: pgadmin4_container
+    image: dpage/pgadmin4
+    restart: always
+    ports:
+      - ${PGADMIN_PORT}:${PGADMIN_PORT_CONTAINER}
+    env_file:
+      - .env
+    networks: *networks
 
 networks:
   rabbitmq_net:

@@ -7,15 +7,22 @@ import pika
 from contextlib import closing
 
 parser = argparse.ArgumentParser()
-parser.add_argument("--mq-host", help="RabbitMQ host", default="host.docker.internal")
-parser.add_argument("--mq-port", help="RabbitMQ port", default="5672")
-parser.add_argument("--mq-queue", help="RabbitMQ queue", default="hello")
+parser.add_argument("--mq-host", help="RabbitMQ host")
+parser.add_argument("--mq-port", help="RabbitMQ port")
+parser.add_argument("--mq-queue", help="RabbitMQ queue")
 args = parser.parse_args()
 
 if __name__ == "__main__":
-    with closing(pika.BlockingConnection(
-            pika.ConnectionParameters(host=args.mq_host, port=args.mq_port, connection_attempts=10, retry_delay=5)
-        )) as connection:
+    with closing(
+        pika.BlockingConnection(
+            pika.ConnectionParameters(
+                host=args.mq_host,
+                port=args.mq_port,
+                connection_attempts=10,
+                retry_delay=5,
+            )
+        )
+    ) as connection:
         with connection.channel() as channel:
             channel.queue_declare(queue=args.mq_queue)
             while True:
@@ -35,21 +42,3 @@ if __name__ == "__main__":
                 except:
                     print("Waiting for something")
                     sleep(1)
-
-# import pika
-
-# while True:
-#     try:
-#         connection = pika.BlockingConnection(
-#             pika.ConnectionParameters(host='host.docker.internal', port=5672,retry_delay=5, connection_attempts=10))
-#         channel = connection.channel()
-
-#         channel.queue_declare(queue='hello')
-
-#         channel.basic_publish(exchange='', routing_key='hello', body='Hello World!')
-#         print(" [x] Sent 'Hello World!'")
-#         connection.close()
-#         sleep(3)
-#     except:
-#         print("Retrying")
-#         sleep(3)

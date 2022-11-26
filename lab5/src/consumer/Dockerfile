@@ -17,5 +17,6 @@ COPY app/main.py .
 ENV PYTHONUNBUFFERED=1
 
 ENTRYPOINT python main.py --mq-host ${MQ_HOST} --mq-port ${MQ_PORT} --mq-queue ${MQ_QUEUE} \
-     --db-name ${DB_NAME} --db-user ${DB_USER} --db-pass ${DB_PASSWORD}
+     --db-name ${POSTGRES_DB} --db-user ${POSTGRES_USER} --db-pass ${POSTGRES_PASSWORD} \
+     --db-host ${DB_HOST} --db-port ${DB_PORT}
 
