@@ -45,7 +45,9 @@
         inherit (my-devshell.functions.${system}) mkCommands;
         writeSettings = writeSettingsJSON {
           inherit (settingsNix) todo-tree files editor gitlens
-            git nix-ide workbench markdown-all-in-one python;
+            git nix-ide workbench markdown-all-in-one python
+            markdown-language-features
+            ;
           add = {
             "python.defaultInterpreterPath" = "\${workspaceFolder}/.venv/bin/python3";
           };

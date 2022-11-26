@@ -37,7 +37,7 @@
           dockerCompose = rec {
             text = ''
               cd src
-              CUID="$(id -u)" CGID="$(id -g)" docker compose up
+              docker compose up
             '';
             description = "docker compose with effective user and group";
             runtimeInputs = [ pkgs.docker ];

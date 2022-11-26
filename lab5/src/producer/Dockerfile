@@ -10,4 +10,6 @@ RUN pip install --no-cache-dir -r requirements.txt
 
 COPY app/main.py .
 
-ENTRYPOINT [ "python", "main.py"]
+ENV PYTHONUNBUFFERED=1
+
+ENTRYPOINT python main.py --mq-host ${MQ_HOST} --mq-port ${MQ_PORT} --mq-queue ${MQ_QUEUE}
