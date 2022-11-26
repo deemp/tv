@@ -1,55 +1,85 @@
 version: "3.2"
 services:
-  # rabbitmq3:
-  #   container_name: "rabbitmq"
-  #   image: rabbitmq:3-management-alpine
-  #   environment:
-  #     - RABBITMQ_DEFAULT_USER=myuser
-  #     - RABBITMQ_DEFAULT_PASS=mypassword
-  #   ports:
-  #     # AMQP protocol port
-  #     - '5672:5672'
-  #     # HTTP management UI
-  #     - '15672:15672'
-
   rabbitmq:
-    image: rabbitmq:3-management-alpine
+    container_name: rabbitmq
+    image: rabbitmq:3.11-management
     ports:
       - 5672:5672
       - 15672:15672
+    expose:
+      - 5672
+      - 15672
     volumes:
-      # - ~/rabbitmq/:/var/lib/rabbitmq
-      - ~/.docker-conf/rabbitmq/data/:/var/lib/rabbitmq/mnesia/
-      # - ~/.docker-conf/rabbitmq/log/:/var/log/rabbitmq/
-    environment:
-      RABBITMQ_DEFAULT_USER: "admin"
-      RABBITMQ_DEFAULT_PASS: "pass"
-      RABBITMQ_DEFAULT_VHOST: "vhost"
+      - rabbitmq_data:/var/lib/rabbitmq
+      - rabbitmq_log:/var/log/rabbitmq
     networks:
+      &networks
       - rabbitmq_net
+    extra_hosts:
+      &extra_hosts
+      - "host.docker.internal:host-gateway"
 
   reader:
     container_name: reader
-    depends_on: [ "rabbitmq" ]
+    depends_on:
+      - "rabbitmq"
+      - "postgres"
     build:
       context: ./reader
       dockerfile: Dockerfile
     volumes:
       - ./reader/app:/app
-    networks:
-      - rabbitmq_net
+    networks: *networks
+    extra_hosts: *extra_hosts
 
   writer:
     container_name: writer
-    depends_on: [ "rabbitmq", "reader" ]
+    depends_on:
+      - "reader"
     build:
       context: ./writer
       dockerfile: Dockerfile
     volumes:
       - ./writer/app:/app
-    networks:
-      - rabbitmq_net
+    networks: *networks
+    extra_hosts: *extra_hosts
+
+  # https://towardsdatascience.com/how-to-run-postgresql-and-pgadmin-using-docker-3a6a8ae918b5
+  postgres:
+    container_name: postgres_container
+    image: postgres:15
+    restart: always
+    environment:
+      - POSTGRES_USER=root
+      - POSTGRES_PASSWORD=root
+      - POSTGRES_DB=pg_db
+    volumes:
+      - /var/run/postgresql:/var/run/postgresql
+    ports:
+      - ${POSTGRES_PORT:-5432}:5432
+    networks: *networks
+
+  pgadmin:
+    depends_on:
+      - postgres
+    container_name: pgadmin4_container
+    image: dpage/pgadmin4
+    restart: always
+    environment:
+      PGADMIN_DEFAULT_EMAIL: root@root.com
+      PGADMIN_DEFAULT_PASSWORD: root
+    ports:
+      - 5050:80
+    networks: *networks
 
 networks:
   rabbitmq_net:
     driver: bridge
+  db_network:
+    driver: bridge
+
+# https://github.com/docker-library/rabbitmq/issues/530#issuecomment-1012985283
+volumes:
+  rabbitmq_data:
+  rabbitmq_log:
+  pg_data:

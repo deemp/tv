@@ -1,21 +1,38 @@
-import argparse
+import time
+import sys
+import os
+from time import sleep
 import pika
 
-
-# parser = argparse.ArgumentParser(
-#     prog="writer",
-#     description="Writes messages to RabbitMQ"
-# )
-
-# parser.add_argument("-h", "--host", default=)  # option that takes a value
-# parser.add_argument("-p", "--port")
-
 if __name__ == "__main__":
-    connection = pika.BlockingConnection(pika.ConnectionParameters(host="host.docker.internal", ))
-    channel = connection.channel()
+    connection = None
+    ok = False
+    while not ok:
+        try:
+            connection = pika.BlockingConnection(
+                pika.ConnectionParameters(host="host.docker.internal", port=5672)
+            )
+            channel = connection.channel()
+            channel.queue_declare(queue="hello")
+            ok = True
+        except Exception:
+            print("Waiting for broker")
+            time.sleep(1)
+    while True:
+        try:
+            now = time.ctime()
+            channel.basic_publish(
+                exchange="", routing_key="hello", body=f"Hello from {now}"
+            )
+            print(f" [x] Sent 'Hello World!' at {now}")
+            sleep(1)
+        except KeyboardInterrupt:
+            print("Interrupted")
+            try:
+                sys.exit(0)
+            except SystemExit:
+                os._exit(0)
 
-    channel.queue_declare(queue="hello")
-
-    channel.basic_publish(exchange="", routing_key="hello", body="Hello World!")
-    print(" [x] Sent 'Hello World!'")
-    connection.close()
+        except:
+            print("Waiting for something")
+            sleep(1)
