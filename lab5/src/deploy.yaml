@@ -1,238 +1,84 @@
-# Deployment of `PostgreSQL` secret
-apiVersion: v1
-kind: Secret
-metadata:
-  name: postgres-secret
-type: Opaque
-data:
-  username: dHZsYWItdXNlcg==
-  password: dHZsYWItcGFzcw==
----
-apiVersion: apps/v1
-kind: Secret
-metadata:
-  name: rabbitmq-secret
-type: Opaque
-data:
-  username: Z3Vlc3Q=
-  password: Z3Vlc3Q=
----
-# Deployment of `RabbitMQ`
-apiVersion: apps/v1
-kind: StatefulSet
-metadata:
-  name: rabbitmq
-spec:
-  serviceName: rabbitmq-service
-  selector:
-    matchLabels:
-      app: rabbitmq
-  template:
-    metadata:
-      labels:
-        app: rabbitmq
-    spec:
-      containers:
-        - name: rabbitmq
-          image: rabbitmq:3-management
-          ports:
-            - containerPort: 5672
-            - containerPort: 15672
-          volumeMounts:
-            - name: rabbitmq-data
-              mountPath: /var/lib/rabbitmq/mnesia
-  volumeClaimTemplates:
-    - metadata:
-        name: rabbitmq-data
-      spec:
-        accessModes: ["ReadWriteOnce"]
-        resources:
-          requests:
-            storage: 1Gi
----
-apiVersion: apps/v1
-kind: Service
-metadata:
-  name: rabbitmq-service
-spec:
-  selector:
-    app: rabbitmq
-  ports:
-    - name: rabbitmq-data-port
-      protocol: TCP
-      port: 5672
-      targetPort: 5672
-    - name: rabbitmq-gui-port
-      protocol: TCP
-      port: 15672
-      targetPort: 15672
----
-# Deployment of `postgres database`
-apiVersion: apps/v1
-kind: StatefulSet
-metadata:
-  name: postgres
-spec:
-  serviceName: postgres-service
-  selector:
-    matchLabels:
-      app: postgres
-  template:
-    metadata:
-      labels:
-        app: postgres
-    spec:
-      containers:
-        - name: postgres
-          image: postgres:latest
-          env:
-            - name: POSTGRES_USER
-              valueFrom:
-                secretKeyRef:
-                  name: postgres-secret
-                  key: username
-            - name: POSTGRES_PASSWORD
-              valueFrom:
-                secretKeyRef:
-                  name: postgres-secret
-                  key: password
-            - name: POSTGRES_DB
-              value: tvlabdb
-          ports:
-            - containerPort: 5432
-          volumeMounts:
-            - name: postgres-data
-              mountPath: /var/lib/postgresql/data
-  volumeClaimTemplates:
-    - metadata:
-        name: postgres-data
-      spec:
-        accessModes: ["ReadWriteOnce"]
-        resources:
-          requests:
-            storage: 1Gi
----
-apiVersion: apps/v1
-kind: Service
-metadata:
-  name: postgres-service
-spec:
-  selector:
-    app: postgres
-  ports:
-    - name: postgres-port
-      protocol: TCP
-      port: 5432
-      targetPort: 5432
 ---
 # Deployment of `app_msg_producer`
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: app-msg-producer-deployment
+  name: producer-deployment
   labels:
-    app: app-msg-producer-java
+    app: producer
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: app-msg-producer-java
+      app: producer
   template:
     metadata:
       labels:
-        app: app-msg-producer-java
+        app: producer
     spec:
       containers:
-        - name: app-msg-producer-java
+        - name: producer
           image: deemp/producer:latest
           ports:
             - containerPort: 8080
           env:
-            - name: "spring.rabbitmq.host"
+            - name: "MQ_HOST"
               value: rabbitmq-service
-            - name: "spring.rabbitmq.port"
+            - name: "MQ_PORT"
               value: "5672"
-            - name: "spring.rabbitmq.password"
-              valueFrom:
-                secretKeyRef:
-                  name: rabbitmq-secret
-                  key: password
-            - name: "spring.rabbitmq.username"
-              valueFrom:
-                secretKeyRef:
-                  name: rabbitmq-secret
-                  key: username
----
-apiVersion: v1
-kind: Service
-metadata:
-  name: app-msg-producer-java-service
-spec:
-  selector:
-    app: app-msg-producer-java
-  ports:
-    - protocol: TCP
-      port: 8080
-      targetPort: 8080
+            - name: "MQ_PASS"
+              value: guest
+            - name: "MQ_USER"
+              value: "guest"
+            - name: "MQ_QUEUE"
+              value: "hello"
 ---
 # Deployment of `app_msg_consumer`
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: app-msg-consumer-deployment
+  name: consumer-deployment
   labels:
-    app: app-msg-consumer-java
+    app: consumer
 spec:
   replicas: 3
   selector:
     matchLabels:
-      app: app-msg-consumer-java
+      app: consumer
   template:
     metadata:
       labels:
-        app: app-msg-consumer-java
+        app: consumer
     spec:
       containers:
-        - name: app-msg-consumer-java
+        - name: consumer
           image: deemp/consumer:latest
           ports:
             - containerPort: 8085
           env:
-            - name: "spring.rabbitmq.host"
-              value: rabbitmq-service
-            - name: "spring.rabbitmq.port"
-              value: "5672"
-            - name: "spring.rabbitmq.password"
-              valueFrom:
-                secretKeyRef:
-                  name: rabbitmq-secret
-                  key: password
-            - name: "spring.rabbitmq.username"
-              valueFrom:
-                secretKeyRef:
-                  name: rabbitmq-secret
-                  key: username
-            # - name: "spring.datasource.url"
-            #   value: "jdbc:postgresql://postgres-service:5432/tvlabdb"
-            # - name: "spring.datasource.username"
-            #   valueFrom:
-            #     secretKeyRef:
-            #       name: postgres-secret
-            #       key: username
-            # - name: "spring.datasource.password"
-            #   valueFrom:
-            #     secretKeyRef:
-            #       name: postgres-secret
-            #       key: password
----
-apiVersion: v1
-kind: Service
-metadata:
-  name: app-msg-consumer-java-service
-spec:
-  selector:
-    app: app-msg-consumer-java
-  ports:
-    - protocol: TCP
-      port: 8085
-      targetPort: 8085
+          - name: ""
+            value: rabbitmq-service
+          - name: "spring.rabbitmq.port"
+            value: "5672"
+          - name: "spring.rabbitmq.password"
+            valueFrom:
+              secretKeyRef:
+                name: rabbitmq-secret
+                key: password
+          - name: "spring.rabbitmq.username"
+            valueFrom:
+              secretKeyRef:
+                name: rabbitmq-secret
+                key: username
+          - name: "spring.datasource.url"
+            value: "jdbc:postgresql://postgres-service:5432/tvlabdb"
+          - name: "spring.datasource.username"
+            valueFrom:
+              secretKeyRef:
+                name: postgres-secret
+                key: username
+          - name: "spring.datasource.password"
+            valueFrom:
+              secretKeyRef:
+                name: postgres-secret
+                key: password

@@ -22,53 +22,51 @@
         pkgs = nixpkgs.legacyPackages.${system};
         devshell = my-devshell.devshell.${system};
         inherit (my-devshell.functions.${system}) mkCommands;
-        inherit (drv-tools.functions.${system}) mkShellApps;
+        inherit (drv-tools.functions.${system}) mkShellApps withAttrs;
         inherit (drv-tools.configs.${system}) man;
         inherit (python-tools.snippets.${system}) activateVenv;
         scripts = mkShellApps {
-          prepareVolumes = rec {
+          # https://github.com/kubernetes/kompose/issues/1097#issuecomment-469052624
+          konvert = rec {
             text = ''
-              sudo mkdir -p ~/.docker-conf/rabbitmq/data/
-              sudo mkdir -p ~/.docker-conf/rabbitmq/log/
+              cd src
+              set -a; source .env; kompose convert --volumes hostPath -o kubernetes.yaml
+              # set -a; source .env; skaffold init --compose-file docker-compose.yaml
             '';
-            description = "Prepare volumes for RabbitMQ";
+            description = "Convert `docker-compose.yaml` to `k8s` files";
+            runtimeInputs = [ pkgs.kompose ];
           };
           # https://dev.to/acro5piano/specifying-user-and-group-in-docker-i2e
-          dockerCompose = rec {
+          composeUp = rec {
             text = ''
               cd src
               docker compose up
             '';
-            description = "docker compose with effective user and group";
+            description = "docker compose up";
             runtimeInputs = [ pkgs.docker ];
           };
         };
         scripts_ = builtins.attrValues scripts;
+        tools = [
+          (withAttrs pkgs.kubernetes { name = "kubernetes"; })
+          (withAttrs pkgs.docker { name = "docker"; })
+          (withAttrs pkgs.poetry { name = "poetry"; })
+          (withAttrs pkgs.hadolint { name = "hadolint"; })
+          (withAttrs pkgs.minikube { name = "minikube"; })
+          (withAttrs pkgs.kompose { name = "kompose"; })
+          (withAttrs pkgs.skaffold { name = "skaffold"; })
+        ];
       in
       {
         devShells.default = devshell.mkShell
           {
-            packages = [
-              pkgs.kubernetes
-              pkgs.docker
-              pkgs.poetry
-              pkgs.hadolint
-            ] ++ scripts_;
+            packages = tools ++ scripts_;
             bash = {
               extra = activateVenv;
             };
-            commands = (mkCommands "scripts" scripts_) ++ [
-              {
-                name = "kube<TAB>";
-                help = pkgs.kubernetes.meta.description;
-                category = "tools";
-              }
-              {
-                name = "docker<TAB>";
-                help = pkgs.docker.meta.description;
-                category = "tools";
-              }
-            ];
+            commands =
+              (mkCommands "scripts" scripts_) ++
+              (mkCommands "tools" tools);
           };
 
         packages = {
