@@ -1,5 +1,27 @@
 # Lab 5
 
+## Prerequisites
+
+- `VirtualBox` installed
+- [Install Nix](https://github.com/deemp/flakes/blob/main/README/NixPrerequisites.md#install-nix)
+
+## Commands
+
+1. Enter directory
+
+```sh
+git clone https://github.com/deemp/tv
+cd tv/lab5
+nix develop
+cd src
+```
+
+1. Start using `docker`
+
+```sh
+docker compose up
+```
+
 ## References
 
 - PostgreSQL in Docker - [src](https://towardsdatascience.com/how-to-run-postgresql-and-pgadmin-using-docker-3a6a8ae918b5)
