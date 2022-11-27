@@ -8,3 +8,6 @@
   - To avoid access permission problems
 - Recreate volumes - [SO](https://stackoverflow.com/a/67971684)
   - To re-initialize a DB
+- A `Python` single-element tuple should have a comma like in `(a,)`
+  - This is necessary when passing records via `psycopg2` - [src](https://www.psycopg.org/docs/usage.html#passing-parameters-to-sql-queries)
+  - It's safer to use lists
