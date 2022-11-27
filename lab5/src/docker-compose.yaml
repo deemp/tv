@@ -4,47 +4,54 @@ services:
     container_name: rabbitmq_container
     image: rabbitmq:3.11-management
     ports:
-      - ${MQ_PORT_CONTAINER}:${MQ_PORT_CONTAINER}
-      - ${MQ_TCP_PORT}:${MQ_TCP_PORT_CONTAINER}
+      - ${MQ_PORT}:${MQ_PORT_CONTAINER}
+      - ${MQ_MANAGEMENT_PORT}:${MQ_MANAGEMENT_PORT_CONTAINER}
     volumes:
-      - rabbitmq_data:/var/lib/rabbitmq
-      - rabbitmq_log:/var/log/rabbitmq
+      - rabbitmq-data:/var/lib/rabbitmq
+      - rabbitmq-log:/var/log/rabbitmq
+    restart: always
     networks:
       &networks
-      - rabbitmq_net
+      - rabbitmq-net
     extra_hosts:
       &extra_hosts
       - "host.docker.internal:host-gateway"
 
   consumer:
     container_name: consumer_container
+    ports: [ 8080:80 ]
+    image: deemp/consumer:latest
     depends_on:
       - rabbitmq
       - postgres
-    build:
-      context: ./consumer
-      dockerfile: Dockerfile
+    # build:
+    #   context: ./consumer
+    #   dockerfile: Dockerfile
     env_file:
       - .env
-    volumes:
-      - ./consumer/app:/app
+    # volumes:
+    #   - ./consumer/app:/app
     networks: *networks
+    restart: always
     extra_hosts: *extra_hosts
 
   producer:
     container_name: producer_container
+    image: deemp/producer:latest
+    ports: [ 8081:80 ]
     depends_on:
       - consumer
-    build:
-      context: ./producer
-      dockerfile: Dockerfile
+    # build:
+    #   context: ./producer
+    #   dockerfile: Dockerfile
     env_file:
       - .env
-    volumes:
-      - ./producer/app:/app
+    # volumes:
+    #   - ./producer/app:/app
+    restart: always
     networks: *networks
     extra_hosts: *extra_hosts
-  
+
   # https://stackoverflow.com/a/67971684
   # https://towardsdatascience.com/how-to-run-postgresql-and-pgadmin-using-docker-3a6a8ae918b5
   postgres:
@@ -56,7 +63,7 @@ services:
     volumes:
       - /var/run/postgresql:/var/run/postgresql
       - ./postgres/init.sql:/docker-entrypoint-initdb.d/init.sql
-      - pg_data:/var/lib/postgresql/data
+      - pg-data:/var/lib/postgresql/data
     ports:
       - ${DB_PORT}:${DB_PORT_CONTAINER}
     networks: *networks
@@ -74,11 +81,11 @@ services:
     networks: *networks
 
 networks:
-  rabbitmq_net:
+  rabbitmq-net:
     driver: bridge
 
 # https://github.com/docker-library/rabbitmq/issues/530#issuecomment-1012985283
 volumes:
-  rabbitmq_data:
-  rabbitmq_log:
-  pg_data:
+  rabbitmq-data:
+  rabbitmq-log:
+  pg-data:
