@@ -26,10 +26,6 @@ spec:
               value: rabbitmq-service
             - name: "MQ_PORT"
               value: "5672"
-            - name: "MQ_PASS"
-              value: guest
-            - name: "MQ_USER"
-              value: "guest"
             - name: "MQ_QUEUE"
               value: "hello"
 ---
@@ -56,29 +52,21 @@ spec:
           ports:
             - containerPort: 8085
           env:
-          - name: ""
+          - name: "MQ_HOST"
             value: rabbitmq-service
-          - name: "spring.rabbitmq.port"
+          - name: "MQ_PORT"
             value: "5672"
-          - name: "spring.rabbitmq.password"
-            valueFrom:
-              secretKeyRef:
-                name: rabbitmq-secret
-                key: password
-          - name: "spring.rabbitmq.username"
-            valueFrom:
-              secretKeyRef:
-                name: rabbitmq-secret
-                key: username
-          - name: "spring.datasource.url"
-            value: "jdbc:postgresql://postgres-service:5432/tvlabdb"
-          - name: "spring.datasource.username"
-            valueFrom:
-              secretKeyRef:
-                name: postgres-secret
-                key: username
-          - name: "spring.datasource.password"
-            valueFrom:
-              secretKeyRef:
-                name: postgres-secret
-                key: password
+          - name: "POSTGRES_DB"
+            value: "pg_db"
+          - name: "MQ_QUEUE"
+            value: "hello"
+          - name: "DB_HOST"
+            value: postgres-service
+          - name: "DB_PORT"
+            value: "5432"
+          - name: "POSTGRES_TABLE"
+            value: init_table
+          - name: "POSTGRES_USER"
+            value: my_admin
+          - name: "POSTGRES_PASSWORD"
+            value: my_admin
