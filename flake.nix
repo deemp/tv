@@ -51,6 +51,7 @@
           add = {
             "python.defaultInterpreterPath" = "\${workspaceFolder}/.venv/bin/python3";
           };
+          inherit (import ./lab5/nix-files/settings.nix) yaml;
         };
       in
       {
