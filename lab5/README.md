@@ -26,9 +26,14 @@ docker compose up
 
 ```sh
 cd k8s
-kubectl apply -f deploy.yaml,secrets.yaml,service.yaml,stateful-set.yaml
+minikube start
+kubectl apply -f .
 kubectl get po
 ```
+
+## Other used commands
+
+- Added `PostgreSQL` by following the second part of this [tutorial](https://phoenixnap.com/kb/postgresql-kubernetes) 
 
 ## References
 
