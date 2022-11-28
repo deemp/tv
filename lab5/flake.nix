@@ -27,13 +27,23 @@
         inherit (python-tools.snippets.${system}) activateVenv;
         scripts = mkShellApps {
           # https://dev.to/acro5piano/specifying-user-and-group-in-docker-i2e
-          composeUp = rec {
+          dockerComposeUp = {
             text = ''
               cd src
               docker compose up
             '';
             description = "docker compose up";
             runtimeInputs = [ pkgs.docker ];
+          };
+          kuberStart = {
+            text = ''
+              cd src/k8s
+              minikube start
+              kubectl apply -f .
+              kubectl get po
+            '';
+            description = "docker compose up";
+            runtimeInputs = [ pkgs.minikube pkgs.kubernetes ];
           };
         };
         scripts_ = builtins.attrValues scripts;
