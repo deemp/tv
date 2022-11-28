@@ -3,6 +3,7 @@
 ## Labs
 
 - [lab 4](./lab4/README.md)
+- [lab 5](./lab5/README.md)
 
 ## Prerequisites
 
@@ -18,5 +19,3 @@ This flake is based on the [codium](https://github.com/deemp/flakes/blob/main/co
 nix develop
 codium .
 ```
-
-In VSCodium's terminal, run `hello`
