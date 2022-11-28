@@ -2,12 +2,11 @@
 
 ## Prerequisites
 
-- `VirtualBox` installed
 - [Install Nix](https://github.com/deemp/flakes/blob/main/README/NixPrerequisites.md#install-nix)
 
 ## Commands
 
-1. Enter directory
+1. Enter a directory
 
 ```sh
 git clone https://github.com/deemp/tv
@@ -36,12 +35,17 @@ kubectl logs -f consumer-deployment-d79646798-jgrmg
 1. It may take some time for a consumer to connect to the DB
 
 1. Consumer logs contents:
-   - Received a message from the queue
+   - Notification about a message received from the queue
    - Contents of a table in a `PostgreSQL` database
+
+1. A sample of a log
+
+    ![log](README/log.png)
 
 ## Other used commands
 
-- Added `PostgreSQL` by following the second part of this [tutorial](https://phoenixnap.com/kb/postgresql-kubernetes) 
+1. `kubectl rollout restart deployment/producer-deployment`
+2. `kubectl get all`
 
 ## References
 
@@ -54,3 +58,4 @@ kubectl logs -f consumer-deployment-d79646798-jgrmg
 - A `Python` single-element tuple should have a comma like in `(a,)`
   - This is necessary when passing records via `psycopg2` - [src](https://www.psycopg.org/docs/usage.html#passing-parameters-to-sql-queries)
   - It's safer to use lists
+- Added `PostgreSQL` by following the second part of this [tutorial](https://phoenixnap.com/kb/postgresql-kubernetes)
