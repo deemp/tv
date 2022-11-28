@@ -29,6 +29,7 @@ cd k8s
 minikube start
 kubectl apply -f .
 kubectl get po
+# here, put your NAME
 kubectl logs -f consumer-deployment-d79646798-jgrmg
 ```
 
