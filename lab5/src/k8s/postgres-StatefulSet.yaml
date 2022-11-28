@@ -1,37 +1,3 @@
-# Deployment of `RabbitMQ`
-apiVersion: apps/v1
-kind: StatefulSet
-metadata:
-  name: rabbitmq
-spec:
-  serviceName: rabbitmq-service
-  selector:
-    matchLabels:
-      app: rabbitmq
-  template:
-    metadata:
-      labels:
-        app: rabbitmq
-    spec:
-      containers:
-        - name: rabbitmq
-          image: rabbitmq:3.11-management
-          ports:
-            - containerPort: 5672
-            - containerPort: 15672
-          volumeMounts:
-            - name: rabbitmq-data
-              mountPath: /var/lib/rabbitmq/mnesia
-  volumeClaimTemplates:
-    - metadata:
-        name: rabbitmq-data
-      spec:
-        accessModes: ["ReadWriteOnce"]
-        resources:
-          requests:
-            storage: 1Gi
----
-# Deployment of `postgres database`
 apiVersion: apps/v1
 kind: StatefulSet
 metadata:
@@ -58,6 +24,16 @@ spec:
               value: pg_db
           ports:
             - containerPort: 5432
+          lifecycle:
+            postStart:
+              exec:
+                command:
+                  - /bin/sh
+                  - -c
+                  - |
+                    sleep 10 && \
+                    export PGPASSWORD=$POSTGRES_PASSWORD psql -w -d $POSTGRES_DB -U $POSTGRES_USER -c \
+                    'CREATE TABLE IF NOT EXISTS init_table (id serial PRIMARY KEY, message_body VARCHAR(200));'
           volumeMounts:
             - name: postgres-data
               mountPath: /var/lib/postgresql/data
