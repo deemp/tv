@@ -22,14 +22,21 @@ cd src
 docker compose up
 ```
 
-1. Try with `kubectl`
+1. Start cluster
 
 ```sh
 cd k8s
 minikube start
 kubectl apply -f .
 kubectl get po
+kubectl logs -f consumer-deployment-d79646798-jgrmg
 ```
+
+1. It may take some time for a consumer to connect to the DB
+
+1. Consumer logs contents:
+   - Received a message from the queue
+   - Contents of a table in a `PostgreSQL` database
 
 ## Other used commands
 

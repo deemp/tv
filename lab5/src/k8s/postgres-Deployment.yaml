@@ -18,9 +18,41 @@ spec:
           imagePullPolicy: "IfNotPresent"
           ports:
             - containerPort: 5432
-          envFrom:
-            - configMapRef:
-                name: postgres-config
+          lifecycle:
+            postStart:
+              exec:
+                command:
+                  - /bin/sh
+                  - -c
+                  - |
+                    sleep 20
+                    export PGPASSWORD=$POSTGRES_PASSWORD
+                    psql -w -d $POSTGRES_DB -U $POSTGRES_USER -c \
+                    'CREATE TABLE IF NOT EXISTS init_table (
+                      id serial PRIMARY KEY, 
+                      message_body VARCHAR(200)
+                    );'
+          env:
+            - name: POSTGRES_PASSWORD
+              valueFrom:
+                configMapKeyRef:
+                  key: POSTGRES_PASSWORD
+                  name: common-config
+            - name: POSTGRES_USER
+              valueFrom:
+                configMapKeyRef:
+                  key: POSTGRES_USER
+                  name: common-config
+            - name: POSTGRES_DB
+              valueFrom:
+                configMapKeyRef:
+                  key: POSTGRES_DB
+                  name: common-config
+            - name: POSTGRES_TABLE
+              valueFrom:
+                configMapKeyRef:
+                  key: POSTGRES_TABLE
+                  name: common-config
           volumeMounts:
             - mountPath: /var/lib/postgresql/data
               name: postgredb

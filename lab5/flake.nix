@@ -55,6 +55,7 @@
           (withAttrs pkgs.minikube { name = "minikube"; })
           (withAttrs pkgs.kompose { name = "kompose"; })
           (withAttrs pkgs.skaffold { name = "skaffold"; })
+          (withAttrs pkgs.kubernetes-helm-wrapped { name = "helm"; })
         ];
       in
       {

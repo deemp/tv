@@ -20,9 +20,18 @@ spec:
           ports:
             - containerPort: 8080
           env:
-            - name: "MQ_HOST"
-              value: rabbitmq-service
-            - name: "MQ_PORT"
-              value: "5672"
-            - name: "MQ_QUEUE"
-              value: "hello"
+            - name: MQ_HOST
+              valueFrom:
+                configMapKeyRef:
+                  key: MQ_HOST
+                  name: common-config
+            - name: MQ_PORT
+              valueFrom:
+                configMapKeyRef:
+                  key: MQ_PORT
+                  name: common-config
+            - name: MQ_QUEUE
+              valueFrom:
+                configMapKeyRef:
+                  key: MQ_QUEUE
+                  name: common-config

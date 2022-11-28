@@ -1,4 +1,4 @@
-import time
+from datetime import datetime as dt
 import sys
 import os
 import argparse
@@ -25,13 +25,13 @@ if __name__ == "__main__":
     ) as connection:
         with connection.channel() as channel:
             channel.queue_declare(queue=args.mq_queue)
-            while True:
+            for i in range(10000):
                 try:
-                    now = time.ctime()
+                    now = dt.now().strftime("%H:%M:%S")
                     channel.basic_publish(
-                        exchange="", routing_key=args.mq_queue, body=f"Hello from {now}"
+                        exchange="", routing_key=args.mq_queue, body=f"Message {i}. Sent at {now}"
                     )
-                    print(f" [x] Sent 'Hello World!' at {now}")
+                    print(f" [x] Sent message {i} at {now}")
                     sleep(1)
                 except KeyboardInterrupt:
                     print("Interrupted")
