@@ -26,16 +26,6 @@
         inherit (drv-tools.configs.${system}) man;
         inherit (python-tools.snippets.${system}) activateVenv;
         scripts = mkShellApps {
-          # https://github.com/kubernetes/kompose/issues/1097#issuecomment-469052624
-          konvert = rec {
-            text = ''
-              cd src
-              set -a; source .env; kompose convert --volumes hostPath -o kubernetes.yaml
-              # set -a; source .env; skaffold init --compose-file docker-compose.yaml
-            '';
-            description = "Convert `docker-compose.yaml` to `k8s` files";
-            runtimeInputs = [ pkgs.kompose ];
-          };
           # https://dev.to/acro5piano/specifying-user-and-group-in-docker-i2e
           composeUp = rec {
             text = ''
@@ -53,9 +43,6 @@
           (withAttrs pkgs.poetry { name = "poetry"; })
           (withAttrs pkgs.hadolint { name = "hadolint"; })
           (withAttrs pkgs.minikube { name = "minikube"; })
-          (withAttrs pkgs.kompose { name = "kompose"; })
-          (withAttrs pkgs.skaffold { name = "skaffold"; })
-          (withAttrs pkgs.kubernetes-helm-wrapped { name = "helm"; })
         ];
       in
       {
