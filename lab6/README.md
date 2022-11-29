@@ -27,3 +27,22 @@
 
 I didn't find a way to change the weights or the algorithm of a load balancer in `Yandex Cloud`.
 What I did observe was that my 3 VMs change once in a couple of minutes in a round-robin manner.
+
+### Part C
+
+I put the load producers into Docker containers. One of them will send the requests to a single server. Another one will request by the load balancer's address. They can both be run as follows
+
+```console
+cd lab6
+nix develop
+docker compose build
+docker compose up
+```
+
+The requests stats are as follows:
+
+![img](README/requestStats.png)
+
+Here, in both cases, there are no failed requests.
+
+When a load balancer is enabled, the requests are distributed evenly.
