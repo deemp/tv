@@ -5,6 +5,8 @@ metadata:
   labels:
     app: common
 data:
+  DB_COLUMN_RECEIVED: received_at
+  DB_COLUMN_SENT: sent_at
   DB_HOST: postgres-service
   DB_PORT_CONTAINER: "5432"
   DB_PORT: "5432"
@@ -20,5 +22,6 @@ data:
   PGADMIN_PORT: "5050"
   POSTGRES_DB: pg_db
   POSTGRES_PASSWORD: my_admin
-  POSTGRES_TABLE: init_table
+  POSTGRES_TABLE_1: table_1
+  POSTGRES_TABLE_2: table_2
   POSTGRES_USER: my_admin

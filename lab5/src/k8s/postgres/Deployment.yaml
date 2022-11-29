@@ -28,10 +28,17 @@ spec:
                     sleep 20
                     export PGPASSWORD=$POSTGRES_PASSWORD
                     psql -w -d $POSTGRES_DB -U $POSTGRES_USER -c \
-                    'CREATE TABLE IF NOT EXISTS init_table (
+                    "CREATE TABLE IF NOT EXISTS $POSTGRES_TABLE_1 (
+                      id serial PRIMARY KEY,
+                      $DB_COLUMN_SENT TIMESTAMP,
+                      $DB_COLUMN_RECEIVED TIMESTAMP
+                    );
+                    CREATE TABLE IF NOT EXISTS $POSTGRES_TABLE_2 (
                       id serial PRIMARY KEY, 
-                      message_body VARCHAR(200)
-                    );'
+                      $DB_COLUMN_SENT TIMESTAMP,
+                      $DB_COLUMN_RECEIVED TIMESTAMP
+                    );
+                    "
           env:
             - name: POSTGRES_PASSWORD
               valueFrom:
@@ -43,15 +50,30 @@ spec:
                 configMapKeyRef:
                   key: POSTGRES_USER
                   name: common-config
+            - name: DB_COLUMN_RECEIVED
+              valueFrom:
+                configMapKeyRef:
+                  key: DB_COLUMN_RECEIVED
+                  name: common-config
+            - name: DB_COLUMN_SENT
+              valueFrom:
+                configMapKeyRef:
+                  key: DB_COLUMN_SENT
+                  name: common-config
             - name: POSTGRES_DB
               valueFrom:
                 configMapKeyRef:
                   key: POSTGRES_DB
                   name: common-config
-            - name: POSTGRES_TABLE
+            - name: POSTGRES_TABLE_1
               valueFrom:
                 configMapKeyRef:
-                  key: POSTGRES_TABLE
+                  key: POSTGRES_TABLE_1
+                  name: common-config
+            - name: POSTGRES_TABLE_2
+              valueFrom:
+                configMapKeyRef:
+                  key: POSTGRES_TABLE_2
                   name: common-config
           volumeMounts:
             - mountPath: /var/lib/postgresql/data

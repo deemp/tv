@@ -55,10 +55,25 @@ spec:
                 configMapKeyRef:
                   key: POSTGRES_PASSWORD
                   name: common-config
-            - name: POSTGRES_TABLE
+            - name: DB_COLUMN_RECEIVED
               valueFrom:
                 configMapKeyRef:
-                  key: POSTGRES_TABLE
+                  key: DB_COLUMN_RECEIVED
+                  name: common-config
+            - name: DB_COLUMN_SENT
+              valueFrom:
+                configMapKeyRef:
+                  key: DB_COLUMN_SENT
+                  name: common-config
+            - name: POSTGRES_TABLE_1
+              valueFrom:
+                configMapKeyRef:
+                  key: POSTGRES_TABLE_1
+                  name: common-config
+            - name: POSTGRES_TABLE_2
+              valueFrom:
+                configMapKeyRef:
+                  key: POSTGRES_TABLE_2
                   name: common-config
             - name: POSTGRES_USER
               valueFrom:
