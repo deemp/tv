@@ -26,7 +26,7 @@ docker compose up
 ```sh
 cd k8s
 minikube start
-kubectl apply -f .
+kubectl apply -Rf .
 kubectl get po
 # here, put your NAME
 kubectl logs -f consumer-deployment-d79646798-jgrmg
