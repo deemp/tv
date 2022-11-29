@@ -26,7 +26,7 @@
 ### 12
 
 I didn't find a way to change the weights or the algorithm of a load balancer in `Yandex Cloud`.
-What I did observe was that my 3 VMs change once in a couple of minutes in a round-robin manner.
+What I did observe was that my 3 VMs change once in a couple of minutes in a round-robin manner during manual testing (reloading a page by hand).
 
 ### Part C
 
