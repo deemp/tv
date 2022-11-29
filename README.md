@@ -2,8 +2,9 @@
 
 ## Labs
 
-- [lab 4](./lab4/README.md)
-- [lab 5](./lab5/README.md)
+- [lab 4](./lab4)
+- [lab 5](./lab5)
+- [lab 6](./lab6)
 
 ## Prerequisites
 
