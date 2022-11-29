@@ -45,7 +45,9 @@ kubectl logs -f consumer-deployment-d79646798-jgrmg
 ## Other used commands
 
 1. `kubectl rollout restart deployment/producer-deployment`
-2. `kubectl get all`
+1. `kubectl get all`
+1. `kubectl delete pod producer-deployment-854855fbb-2vvmn`
+1. `kubectl describe pod consumer-deployment-778ffb9d45-2tv6k`
 
 ## References
 
@@ -59,3 +61,4 @@ kubectl logs -f consumer-deployment-d79646798-jgrmg
   - This is necessary when passing records via `psycopg2` - [src](https://www.psycopg.org/docs/usage.html#passing-parameters-to-sql-queries)
   - It's safer to use lists
 - Added `PostgreSQL` by following the second part of this [tutorial](https://phoenixnap.com/kb/postgresql-kubernetes)
+- Specify a Docker user and group - [src](https://dev.to/acro5piano/specifying-user-and-group-in-docker-i2e)

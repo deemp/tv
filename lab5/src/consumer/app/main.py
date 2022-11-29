@@ -1,6 +1,6 @@
 import sys
 import os
-import time
+import json
 from datetime import datetime as dt
 from contextlib import closing
 from time import sleep
@@ -18,7 +18,14 @@ parser.add_argument("--db-user", help="PostgreSQL database user")
 parser.add_argument("--db-pass", help="PostgreSQL database password")
 parser.add_argument("--db-host", help="PostgreSQL database host")
 parser.add_argument("--db-port", help="PostgreSQL database port")
-parser.add_argument("--db-table", help="PostgreSQL database table")
+parser.add_argument("--db-table-1", help="PostgreSQL database table 1")
+parser.add_argument("--db-table-2", help="PostgreSQL database table 2")
+parser.add_argument(
+    "--db-column-received", help="PostgreSQL database column for received timestamps"
+)
+parser.add_argument(
+    "--db-column-sent", help="PostgreSQL database column for sent timestamps"
+)
 args = parser.parse_args()
 
 
@@ -45,22 +52,31 @@ def main():
                         host=args.db_host,
                         port=args.db_port,
                     )
+                    print("Connected to PostgreSQL!")
 
                     def callback(ch, method, properties, body):
-                        now = dt.now().strftime("%H:%M:%S")
-                        print(f" [x] Received {body} at {now}")
+                        now = dt.now().isoformat()
+                        message = json.loads(body.decode("utf-8"))
+                        sent = dt.fromisoformat(message["timestamp"])
+                        print(
+                            f"[x] Received a message with id {message['id']} of type {message['type']} at {now}. This message was sent at {sent.isoformat()}"
+                        )
+                        target_db_table = (
+                            args.db_table_1 if message["type"] == 1 else args.db_table_2
+                        )
                         try:
                             with conn:
                                 with conn.cursor() as cursor:
-                                    print("Connected to PostgreSQL!")
                                     cursor.execute(
-                                        f"INSERT INTO {args.db_table} (message_body) VALUES (%s)",
-                                        [body.decode("utf-8")],
+                                        f"INSERT INTO {target_db_table} ({args.db_column_received}, {args.db_column_sent}) VALUES (%s, %s)",
+                                        [now, sent],
                                     )
                             with conn:
                                 with conn.cursor() as cursor:
-                                    cursor.execute(f"SELECT * FROM {args.db_table}")
-                                    print("Table contents")
+                                    cursor.execute(
+                                        f"SELECT * FROM {target_db_table} order by id desc limit 5"
+                                    )
+                                    print(f"Last 5 rows of table {target_db_table}")
                                     for row in cursor:
                                         print(row)
                         except (Exception, psycopg2.Error) as error:
@@ -83,8 +99,9 @@ def main():
                                 sys.exit(0)
                             except SystemExit:
                                 os._exit(0)
-                        except Exception:
-                            print("Some exception occured! Retrying")
+                        except Exception as exc:
+                            print(exc)
+                            print("Retrying")
                             sleep(1)
                         break
                     conn.close()
