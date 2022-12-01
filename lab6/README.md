@@ -8,7 +8,7 @@
 1. Created an `html` file as per `Part A, 4`
 1. Created an image of my instance and 2 other instances from this image
 1. Logged into other instances and edited `html`s in them
-1. Created a `listener`, created a `target group`, created a `load balancer`
+1. Created a `listener`, created a `target group`, created a `Network Load Balancer`
 1. Opened the page of my load balancer in a browser
 
     ![img](README/loadBalancer.png)
