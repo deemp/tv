@@ -9,7 +9,7 @@
 
 ## Prerequisites
 
-See [Prerequisites](https://github.com/deemp/flakes#prerequisites)
+See [Prerequisites](https://github.com/deemp/flakes#prerequisites) for `Nix`
 
 ## Description
 
