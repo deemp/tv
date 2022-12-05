@@ -48,6 +48,8 @@ kubectl logs -f consumer-deployment-d79646798-jgrmg
 1. `kubectl get all`
 1. `kubectl delete pod producer-deployment-854855fbb-2vvmn`
 1. `kubectl describe pod consumer-deployment-778ffb9d45-2tv6k`
+1. `docker compose down --volumes`
+   1. Remove previous database contents
 
 ## References
 
