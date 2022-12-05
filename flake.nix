@@ -3,6 +3,7 @@
     nixpkgs_.url = "github:deemp/flakes?dir=source-flake/nixpkgs";
     nixpkgs.follows = "nixpkgs_/nixpkgs";
     my-codium.url = "github:deemp/flakes?dir=codium";
+    flakes-tools.url = "github:deemp/flakes?dir=flakes-tools";
     flake-utils_.url = "github:deemp/flakes?dir=source-flake/flake-utils";
     flake-utils.follows = "flake-utils_/flake-utils";
     vscode-extensions_.url = "github:deemp/flakes?dir=source-flake/vscode-extensions";
@@ -18,6 +19,7 @@
     , vscode-extensions
     , my-devshell
     , python-tools
+    , flakes-tools
     , ...
     }: flake-utils.lib.eachDefaultSystem
       (system:
@@ -26,6 +28,7 @@
         inherit (my-codium.functions.${system}) mkCodium writeSettingsJSON;
         inherit (my-codium.configs.${system}) extensions settingsNix;
         inherit (vscode-extensions.packages.${system}) vscode open-vsx;
+        inherit (flakes-tools.functions.${system}) mkFlakesTools;
         tools = [ pkgs.hadolint pkgs.poetry pkgs.rabbitmq-server ];
         codium = mkCodium {
           extensions = {
@@ -53,8 +56,12 @@
           };
           inherit (import ./lab5/nix-files/settings.nix) yaml;
         };
+        flakesTools = mkFlakesTools [ "lab4" "lab5" "lab6" "lab7" "." ];
       in
       {
+        packages = {
+          inherit (flakesTools) updateLocks pushToCachix;
+        };
         devShells.default = devshell.mkShell
           {
             packages = [ codium writeSettings createVenvs ] ++ tools;
@@ -76,7 +83,7 @@
     extra-trusted-substituters = [
       "https://haskell-language-server.cachix.org"
       "https://nix-community.cachix.org"
-      "https://hydra.iohk.io"
+      "https://cache.iog.io"
       "https://deemp.cachix.org"
     ];
     extra-trusted-public-keys = [
