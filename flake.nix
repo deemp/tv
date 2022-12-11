@@ -29,34 +29,29 @@
         inherit (my-codium.configs.${system}) extensions settingsNix;
         inherit (vscode-extensions.packages.${system}) vscode open-vsx;
         inherit (flakes-tools.functions.${system}) mkFlakesTools;
-        tools = [ pkgs.hadolint pkgs.poetry pkgs.rabbitmq-server ];
-        codium = mkCodium {
-          extensions = {
-            inherit (extensions) nix misc markdown github docker python toml yaml;
-            c-cpp = {
-              inherit (vscode.ms-vscode) cpptools-themes cmake-tools cpptools;
-            };
-            k8s = {
-              inherit (vscode.ipedrazas) kubernetes-snippets;
-            };
-          };
-          runtimeDependencies = tools;
-        };
-        inherit (python-tools.snippets.${system}) activateVenv;
-        createVenvs = python-tools.functions.${system}.createVenvs [ "." "lab5" ];
-        devshell = my-devshell.devshell.${system};
-        inherit (my-devshell.functions.${system}) mkCommands;
+        createVenvs = python-tools.functions.${system}.createVenvs [ "lab5" "lab6" ];
         writeSettings = writeSettingsJSON {
           inherit (settingsNix) todo-tree files editor gitlens
             git nix-ide workbench markdown-all-in-one python
-            markdown-language-features
+            markdown-language-features yaml kubernetes
             ;
-          add = {
-            "python.defaultInterpreterPath" = "\${workspaceFolder}/.venv/bin/python3";
-          };
-          inherit (import ./lab5/nix-files/settings.nix) yaml;
         };
+        codiumTools = builtins.attrValues {
+          inherit (pkgs) rabbitmq-server hadolint poetry;
+          inherit writeSettings createVenvs;
+        };
+        codium = mkCodium {
+          extensions = {
+            inherit (extensions) 
+              nix misc markdown github docker 
+              python toml yaml kubernetes;
+          };
+          runtimeDependencies = codiumTools;
+        };
+        devshell = my-devshell.devshell.${system};
+        inherit (my-devshell.functions.${system}) mkCommands;
         flakesTools = mkFlakesTools [ "lab4" "lab5" "lab6" "lab7" "." ];
+        tools = codiumTools ++ [ codium ];
       in
       {
         packages = {
@@ -64,18 +59,9 @@
         };
         devShells.default = devshell.mkShell
           {
-            packages = [ codium writeSettings createVenvs ] ++ tools;
-            bash = {
-              extra = '''';
-            };
-            commands = (mkCommands "ide" [ codium writeSettings ]) ++
-              [
-                {
-                  name = "poetry";
-                  help = pkgs.poetry.meta.description;
-                  category = "tools";
-                }
-              ];
+            packages = tools;
+            bash.extra = '''';
+            commands = (mkCommands "ide" tools);
           };
       });
 

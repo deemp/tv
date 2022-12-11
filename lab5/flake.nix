@@ -46,13 +46,15 @@
           };
         };
         scripts_ = builtins.attrValues scripts;
-        tools = [
-          (withAttrs pkgs.kubernetes { name = "kubernetes"; })
-          (withAttrs pkgs.docker { name = "docker"; })
-          (withAttrs pkgs.poetry { name = "poetry"; })
-          (withAttrs pkgs.hadolint { name = "hadolint"; })
-          (withAttrs pkgs.minikube { name = "minikube"; })
-        ];
+        tools = builtins.attrValues
+          {
+            inherit (pkgs) 
+              kubernetes
+              docker
+              poetry
+              hadolint
+              minikube;
+          };
       in
       {
         devShells.default = devshell.mkShell
